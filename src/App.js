@@ -2,7 +2,6 @@ import React from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
-import { Text, TextInput, View } from 'react-native';
 
 // import Course from './Course.js'
 
@@ -58,7 +57,7 @@ class CourseDetail extends React.Component {
         <Navbar/>
         <div class="container">
           <h2>{item.title}</h2>
-          <h4>{item.dept} {item.id}</h4>
+          <h4>{item.dept} {item.number}</h4>
           <div>
             <p>{item.description}</p>
           </div> 
@@ -107,14 +106,13 @@ class HomePage extends React.Component {
     super(props);
     this.state = {
       cart: this.props.cart,
-      page: 0
     }
   }
  
   render() {
     return(
       <div>
-      <Navbar cartSize={this.props.cartSize}/>
+      <NavHome searchCourse={this.props.searchCourse} cartSize={this.props.cartSize}/>
       <div class="container-fluid">
     <div class="container">
         <div class="col">
@@ -129,27 +127,63 @@ class HomePage extends React.Component {
   }
 }
 
-class Navbar extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      cartDropDown : null,
-    }
+class NavHome extends React.Component {
+  handleChange = () => {
+    let search = this.searchBar.value
+    this.props.searchCourse(search)
   }
-
-  cartClick() {
-    if(this.state.cartDropDown == null) {
-      let dropDown =  <div>
-          <p>Item 1</p>
-          <p>Item 2</p>
+  render() {
+    let styles = {
+      width: '27px',
+      opacity: '.19',
+    };
+    return(
+      <nav class="navbar navbar-light navbar-expand bg-white shadow mb-4 topbar static-top">
+      <div class="container-fluid"><button class="btn btn-link d-md-none rounded-circle mr-3" id="sidebarToggleTop" type="button"><i class="fas fa-bars"></i></button>
+          <h1 class="text-dark">Penn Course Cart</h1>
+            <form class="form-inline d-none d-sm-inline-block mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+              <div class="input-group">
+                  <input 
+                  ref={(ref) => this.searchBar = ref} 
+                  type="text" 
+                  onChange={this.handleChange} 
+                  class="bg-light form-control border-0 small" 
+                  placeholder="Search for ..." />
+                    <div class="input-group-append">
+                      <button class="btn btn-primary py-0" type="button">
+                        <i class="fas fa-search"></i>
+                      </button>
+                    </div>
+                </div>           
+              </form>
+          <ul class="nav navbar-nav flex-nowrap ml-auto">
+              <li role="presentation" class="nav-item dropdown no-arrow mx-1">
+                  <div class="nav-item dropdown no-arrow">
+                    <a data-toggle="dropdown" aria-expanded="false" class="dropdown-toggle nav-link" href="#">
+                      <span class="badge badge-danger badge-counter">
+                        {this.props.cartSize}
+                      </span><img src="cartIcon.png" style={styles} />
+                      </a>
+                  </div>
+              </li>
+              <li role="presentation" class="nav-item dropdown no-arrow">
+                <div class="nav-item dropdown no-arrow">
+                  <a aria-expanded="false" class="dropdown-toggle nav-link" href="#">
+                    <Link to="/cart">
+                    <button class="btn btn-success bg-success border-success" type="button">
+                    Checkout</button>
+                    </Link>
+                  </a>                    
+                </div>
+              </li>
+          </ul>
         </div>
-
-    this.setState({
-      cartDropDown : dropDown
-    })
-    }
+      </nav>
+    )
   }
+}
 
+class Navbar extends React.Component {
   render() {
     let styles = {
       width: '27px',
@@ -159,28 +193,19 @@ class Navbar extends React.Component {
       <nav class="navbar navbar-light navbar-expand bg-white shadow mb-4 topbar static-top">
         <div class="container-fluid"><button class="btn btn-link d-md-none rounded-circle mr-3" id="sidebarToggleTop" type="button"><i class="fas fa-bars"></i></button>
             <h1 class="text-dark">Penn Course Cart</h1>
-            <form class="form-inline d-none d-sm-inline-block mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-                <div class="input-group"><input type="text" class="bg-light form-control border-0 small" placeholder="Search for ..." />
-                    <div class="input-group-append"><button class="btn btn-primary py-0" type="button"><i class="fas fa-search"></i></button></div>
-                </div>
-            </form>
             <ul class="nav navbar-nav flex-nowrap ml-auto">
                 <li role="presentation" class="nav-item dropdown no-arrow mx-1">
                     <div class="nav-item dropdown no-arrow">
                       <a data-toggle="dropdown" aria-expanded="false" class="dropdown-toggle nav-link" href="#">
                         <span class="badge badge-danger badge-counter">
                           {this.props.cartSize}
-                        </span><img onClick={this.cartClick()} src="cartIcon.png" style={styles} />
+                        </span><img src="cartIcon.png" style={styles} />
                         </a>
                     </div>
                 </li>
                 <li role="presentation" class="nav-item dropdown no-arrow">
                   <div class="nav-item dropdown no-arrow">
                     <a aria-expanded="false" class="dropdown-toggle nav-link" href="#">
-                      <Link to="/cart">
-                      <button class="btn btn-success bg-success border-success" type="button">
-                      Checkout</button>
-                      </Link>
                     </a>                    
                   </div>
                 </li>
@@ -201,7 +226,7 @@ class Cart extends React.Component {
           <h1>Your Cart</h1>
           {this.props.listCart}
           <Link to="/">
-          <button class="btn btn-light" type="button">Back</button>
+          <button onClick={this.props.clearSearch} class="btn btn-light" type="button">Back</button>
           </Link>
           <Link to="/checkout">
           <button class="btn btn-light" type="button">Place Order</button>
@@ -217,7 +242,12 @@ export default class App extends React.Component {
     super(props);
     this.state = {
       cart: [],
+      search: ""
     }
+  }
+
+  searchCourse = (newSearch) => {
+    this.setState({search: newSearch});
   }
 
   handleClick(i) {
@@ -276,18 +306,27 @@ export default class App extends React.Component {
 )
   }
 
-  clearCart() {
+  clear() {
     const newCart = []
     this.setState({
-      cart: newCart
+      cart: newCart, 
+      search: ""
     })
   }
 
+  clearSearch() {
+    this.setState({
+      search: ""
+    })
+  }
 
   listCourses () {
     let children = []
+    let search = this.state.search.toLowerCase()
     for (let i = 0; i < course.length; i++) {
-      children.push(this.renderCourse(i))
+      if (course[i].title.toLowerCase().includes(search)) {
+        children.push(this.renderCourse(i))
+      }
      }
     return (<div class="row">
       {children}
@@ -300,15 +339,17 @@ export default class App extends React.Component {
         <Switch>
         <Route
           path="/" exact
-          render={(props) => <HomePage {...props} cart={this.state.cart} 
+          render={(props) => <HomePage {...props}
+            searchCourse={this.searchCourse}
+            cart={this.state.cart} 
             list={this.listCourses()} 
             cartSize={this.cartSize()}/>}
         />
           <Route path="/cart" 
-          render={(props) => <Cart {...props} listCart={this.listCart()} cart={this.state.cart}/>}
+          render={(props) => <Cart {...props} listCart={this.listCart()} clearSearch={() => this.clearSearch()} cart={this.state.cart}/>}
         />
         <Route path="/checkout" 
-          render={(props) => <CheckOut {...props} clear={() => this.clearCart()} cart={this.state.cart}/>}
+          render={(props) => <CheckOut {...props} clear={() => this.clear()} cart={this.state.cart}/>}
         />
         <Route path="/courseinfo/:id" 
           render={(props) => <CourseDetail {...props} cart={this.state.cart}/>}
