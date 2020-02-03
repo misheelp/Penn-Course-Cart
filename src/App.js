@@ -1,10 +1,11 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
+// import Course from './Course.js'
 
 let course = require('./courses.json');
+
 
 class Course extends React.Component {
   render() {
@@ -99,60 +100,6 @@ class CheckOut extends React.Component {
   }
 }
 
-class Cart extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      cart: this.props.cart
-    }
-  }
-
-  course(i) {
-    return(
-      <div class="card-body border rounded-0">
-    <h4 class="card-title">{this.state.cart[i].title}</h4>
-    <button class="btn btn-light" type="button">Remove</button>
-    </div>
-    )
-  }
-
-  listCart() {
-    let children = []
-    //let rows = Math.floor(course.length / 2)
-    for (let i = 0; i < this.state.cart.length; i++) {
-      children.push(this.course(i))
-     }
-    return (<div class="row">
-    <div class="col">
-        <div class="card-group">
-            <div class="card">
-              {children}
-            </div>
-        </div>
-    </div>
-</div>
-)
-  }
-
-  render() {
-    return(
-      <div>
-        <Navbar cartSize={this.state.cart.length}/>
-        <div class="container">
-          <h1>Your Cart</h1>
-          {this.listCart()}
-          <Link to="/">
-          <button class="btn btn-light" type="button">Back</button>
-          </Link>
-          <Link to="/checkout">
-          <button class="btn btn-light" type="button">Place Order</button>
-          </Link>
-        </div>
-      </div>      
-    )
-  }
-}
-
 class HomePage extends React.Component {
   constructor(props) {
     super(props);
@@ -181,6 +128,26 @@ class HomePage extends React.Component {
 }
 
 class Navbar extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      cartDropDown : null,
+    }
+  }
+
+  cartClick() {
+    if(this.state.cartDropDown == null) {
+      let dropDown =  <div>
+          <p>Item 1</p>
+          <p>Item 2</p>
+        </div>
+
+    this.setState({
+      cartDropDown : dropDown
+    })
+    }
+  }
+
   render() {
     let styles = {
       width: '27px',
@@ -201,7 +168,7 @@ class Navbar extends React.Component {
                       <a data-toggle="dropdown" aria-expanded="false" class="dropdown-toggle nav-link" href="#">
                         <span class="badge badge-danger badge-counter">
                           {this.props.cartSize}
-                        </span><img src="cartIcon.png" style={styles} />
+                        </span><img onClick={this.cartClick()} src="cartIcon.png" style={styles} />
                         </a>
                     </div>
                 </li>
@@ -223,7 +190,26 @@ class Navbar extends React.Component {
   
 }
 
-/*page: 0 is homepage, 1 is cart, 2 is item */
+class Cart extends React.Component {
+  render() {
+    return(
+      <div>
+        <Navbar cartSize={this.props.cart.length}/>
+        <div class="container">
+          <h1>Your Cart</h1>
+          {this.props.listCart}
+          <Link to="/">
+          <button class="btn btn-light" type="button">Back</button>
+          </Link>
+          <Link to="/checkout">
+          <button class="btn btn-light" type="button">Place Order</button>
+          </Link>
+        </div>
+      </div>      
+    )
+  }
+}
+
 export default class App extends React.Component {
   constructor(props) {
     super(props);
@@ -254,6 +240,40 @@ export default class App extends React.Component {
     )
   }
 
+  remove(course) {
+    let newCart = this.state.cart.slice()
+    var index = newCart.indexOf(course);
+ 
+    if (index > -1) {
+       newCart.splice(index, 1);
+    }
+    this.setState({
+      cart: newCart, 
+    })
+  }
+
+  //another method for the cart page
+  listCart() {
+    let children = []
+    for (let i = 0; i < this.state.cart.length; i++) {
+      children.push(<div class="card-body border rounded-0">
+      <h4 class="card-title">{this.state.cart[i].title}</h4>
+      <button class="btn btn-light" onClick={() => this.remove(this.state.cart[i])} type="button">Remove</button>
+      </div>)
+     }
+    return (<div class="row">
+    <div class="col">
+        <div class="card-group">
+          {this.state.size}
+            <div class="card">
+              {children}
+            </div>
+        </div>
+    </div>
+</div>
+)
+  }
+
   clearCart() {
     const newCart = []
     this.setState({
@@ -264,26 +284,8 @@ export default class App extends React.Component {
 
   listCourses () {
     let children = []
-    //let rows = Math.floor(course.length / 2)
     for (let i = 0; i < course.length; i++) {
-      // let children = []
-      // for (let j = 0; j < 2; j++) {
-      //   children.push(
-      //       this.renderCourse(count)
-      //     )
-      //   count++
-      // }
       children.push(this.renderCourse(i))
-    // }
-    // if (count < course.length) {
-    //   let children = []
-    //   for (let i = count; i < course.length; i++) {
-    //     children.push(<td>
-    //       Course {course[count].title}
-    //       </td>)
-    //     count++
-    //   }
-    //   table.push(<tr>{children}</tr>)
      }
     return (<div class="row">
       {children}
@@ -301,7 +303,7 @@ export default class App extends React.Component {
             cartSize={this.cartSize()}/>}
         />
           <Route path="/cart" 
-          render={(props) => <Cart {...props} cart={this.state.cart}/>}
+          render={(props) => <Cart {...props} listCart={this.listCart()} cart={this.state.cart}/>}
         />
         <Route path="/checkout" 
           render={(props) => <CheckOut {...props} clear={() => this.clearCart()} cart={this.state.cart}/>}
